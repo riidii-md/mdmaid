@@ -6,9 +6,34 @@ import {
 import { renderWithVeol } from './backends/veol.js';
 import { renderMarkdownMermaidFallback } from './markdown.js';
 import { sanitizeTerminalText } from './security.js';
+import { createMarkdownSourceMap, type MarkdownSourceMapV1 } from '../core/source-map.js';
 import type { TuiRenderOptions, TuiRenderResult } from './types.js';
 
 export type { TuiBackend, TuiRenderOptions, TuiRenderResult } from './types.js';
+
+export interface PositionedTuiRenderResult extends TuiRenderResult {
+  sourceMap: MarkdownSourceMapV1;
+}
+
+export async function renderMarkdownToTuiWithSourceMap(
+  markdown: string,
+  options: TuiRenderOptions = {},
+): Promise<PositionedTuiRenderResult> {
+  if (options.backend === 'veol' || options.backend === 'source') {
+    throw new Error(
+      `The ${options.backend} TUI backend does not support Markdown source maps.`,
+    );
+  }
+  const positionedOptions: TuiRenderOptions = {
+    ...options,
+    backend: 'beautiful-mermaid',
+  };
+  const [result, sourceMap] = await Promise.all([
+    renderMarkdownToTui(markdown, positionedOptions),
+    createMarkdownSourceMap(markdown, options),
+  ]);
+  return { ...result, sourceMap };
+}
 
 export async function renderMarkdownToTui(
   markdown: string,

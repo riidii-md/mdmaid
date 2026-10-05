@@ -7,6 +7,7 @@ import type {
   ListItem,
   Paragraph,
   PhrasingContent,
+  Root,
   RootContent,
   Table,
 } from 'mdast';
@@ -14,6 +15,7 @@ import { remark } from 'remark';
 import remarkGfm from 'remark-gfm';
 import stringWidth from 'string-width';
 
+import { positionedEmojiTransformer } from '../core/source-map.js';
 import { sanitizeTerminalText } from './security.js';
 import {
   createTerminalTheme,
@@ -52,6 +54,7 @@ interface RenderState {
   theme: TerminalTheme;
   unicode: boolean;
   warnings: string[];
+  omittedFencedCodeLanguages: ReadonlySet<string>;
 }
 
 const UNICODE_BORDERS: BorderSet = {
@@ -92,7 +95,10 @@ export async function renderMarkdownMermaidFallback(
   options: TuiRenderOptions = {},
 ): Promise<TuiRenderResult> {
   const safeMarkdown = sanitizeTerminalText(markdown);
-  const tree = remark().use(remarkGfm).parse(safeMarkdown);
+  const processor = remark()
+    .use(remarkGfm)
+    .use(() => positionedEmojiTransformer(safeMarkdown));
+  const tree = await processor.run(processor.parse(safeMarkdown)) as Root;
   const width = resolveTerminalWidth(options.width);
   const state: RenderState = {
     borders: options.unicode === false ? ASCII_BORDERS : UNICODE_BORDERS,
@@ -100,6 +106,11 @@ export async function renderMarkdownMermaidFallback(
     theme: createTerminalTheme(options.color === true),
     unicode: options.unicode !== false,
     warnings: [],
+    omittedFencedCodeLanguages: new Set(
+      (options.omitFencedCodeLanguages ?? []).map((language) =>
+        language.trim().toLowerCase(),
+      ),
+    ),
   };
   const lines = await renderBlocks(tree.children, width, state, 0);
   const output = fitTerminalLines(lines.join('\n'), width).join('\n');
@@ -382,6 +393,8 @@ async function renderCode(
   state: RenderState,
 ): Promise<string[]> {
   const language = node.lang?.trim().toLowerCase() || 'text';
+
+  if (state.omittedFencedCodeLanguages.has(language)) return [];
 
   if (language === 'mermaid') {
     const result = await state.renderMermaid(node.value);
