@@ -1,6 +1,6 @@
 {
   "name": "mdmaid",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "type": "module",
   "description": "Markdown + Mermaid made simple - A powerful markdown renderer with first-class Mermaid diagram support",
   "main": "dist/lib/index.js",
