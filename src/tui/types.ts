@@ -7,6 +7,7 @@ export interface TuiRenderOptions {
   beautifulMermaid?: boolean;
   unicode?: boolean;
   color?: boolean;
+  omitFencedCodeLanguages?: readonly string[];
 }
 
 export interface TuiRenderResult {

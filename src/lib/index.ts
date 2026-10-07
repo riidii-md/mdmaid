@@ -4,7 +4,28 @@
  * A powerful markdown renderer with first-class Mermaid diagram support
  */
 
-export { renderMarkdown, extractMermaidBlocks, type RenderOptions } from '../core/renderer.js';
+export {
+  renderMarkdown,
+  renderMarkdownWithSourceMap,
+  extractMermaidBlocks,
+  type PositionedMarkdownRenderResult,
+  type RenderOptions,
+} from '../core/renderer.js';
+export {
+  MARKDOWN_SOURCE_COORDINATE_SYSTEM,
+  MARKDOWN_SOURCE_MAP_VERSION,
+  createMarkdownSourceMap,
+  resolveMarkdownSelection,
+  type MarkdownLogicalLineV1,
+  type MarkdownSelectionBoundaryV1,
+  type MarkdownSelectionWitnessV1,
+  type MarkdownSourceExclusionV1,
+  type MarkdownSourceMapOptions,
+  type MarkdownSourceMapV1,
+  type MarkdownSourcePointV1,
+  type MarkdownSourceSegmentV1,
+  type MarkdownTextAnchorV1,
+} from '../core/source-map.js';
 export {
   validateMarkdown,
   validateMermaid,
